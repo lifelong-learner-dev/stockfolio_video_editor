@@ -1,0 +1,41 @@
+# Python 환경
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+build/
+dist/
+
+# Django 관련
+*.log
+*.pot
+*.py[cod]
+*.sqlite3
+*.db
+*.DS_Store
+/media/
+*.env
+
+# Celery
+celerybeat-schedule
+*.pid
+
+# 환경 파일
+.env
+*.env
+
+# 다른 OS 및 편집기 관련 파일
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# 파이썬의 byte-compiled
+*.pyo
+*.pyc
+*.pyd

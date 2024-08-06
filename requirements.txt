@@ -1,0 +1,8 @@
+django
+djangorestframework
+djangorestframework-simplejwt
+celery
+redis
+ffmpeg-python
+django-celery-results
+environ
