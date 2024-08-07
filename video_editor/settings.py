@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 
 from pathlib import Path
 import environ
+import os
+import sys
 
 # Initialise environment variables
 env = environ.Env(
@@ -48,6 +50,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "videos",
     "django_celery_results",
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -128,7 +131,37 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# 미디어 파일 설정
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Celery 비동기 설정
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'django-db'
+
+# DRF 설정
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    )
+}
+
+# SessionAuthentication을 사용하지 않을 경우, 아래와 같이 설정하여 CSRF 검증을 비활성화할 수 있습니다.
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+if 'test' in sys.argv:
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'test_media')

@@ -69,3 +69,6 @@ env/
 
 # Pipenv
 Pipfile.lock
+
+# Ignore Redis dump files
+dump.rdb
