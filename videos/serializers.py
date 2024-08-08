@@ -18,6 +18,11 @@ class TrimCommandSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ConcatCommandSerializer(serializers.ModelSerializer):
+    videos = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Video.objects.all()
+    )
+
     class Meta:
         model = ConcatCommand
-        fields = '__all__'
+        fields = ['videos']

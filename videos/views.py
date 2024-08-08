@@ -19,6 +19,7 @@ import os
 # Logging setup
 logger = logging.getLogger(__name__)
 
+
 class VideoViewSet(viewsets.ViewSet):
     queryset = Video.objects.all()
     authentication_classes = [JWTAuthentication, SessionAuthentication, BasicAuthentication]
@@ -93,13 +94,25 @@ class VideoViewSet(viewsets.ViewSet):
     )
     @action(detail=False, methods=['post'], url_path='concat')
     def concat(self, request):
-        serializer = ConcatCommandSerializer(data=request.data)
-        if serializer.is_valid():
+        # 'videos' 파라미터를 콤마로 분리하여 리스트로 변환
+        video_ids = request.data.get('videos', '').split(',')
+        
+        try:
+            # 비디오 ID에 해당하는 비디오 객체를 조회
+            videos = Video.objects.filter(id__in=video_ids)
+            if videos.count() != len(video_ids):
+                return Response({'error': 'Some video IDs are invalid.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # ConcatCommandSerializer에 비디오 객체 리스트를 전달하여 저장
             with transaction.atomic():
-                concat_command = serializer.save()
+                concat_command = ConcatCommand.objects.create()
+                concat_command.videos.set(videos)
                 transaction.on_commit(lambda: execute_concat_command.delay(concat_command.id))
+            
             return Response({'id': concat_command.id}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         method='get',
