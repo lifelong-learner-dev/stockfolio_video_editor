@@ -9,9 +9,11 @@ class Video(models.Model):
         return f"Video {self.id}"
 
 class TrimCommand(models.Model):
-    video = models.ForeignKey(Video, on_delete=models.CASCADE)
+    id = models.AutoField(primary_key=True)
+    video_no = models.IntegerField()
     start_time = models.IntegerField()
     end_time = models.IntegerField()
 
 class ConcatCommand(models.Model):
+    id = models.AutoField(primary_key=True)
     videos = models.ManyToManyField(Video)

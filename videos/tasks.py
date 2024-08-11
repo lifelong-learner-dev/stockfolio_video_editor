@@ -3,22 +3,41 @@ import ffmpeg
 from .models import TrimCommand, ConcatCommand, Video
 import os
 import subprocess
+from django.core.files import File
 
 @shared_task
 def execute_trim_command(trim_command_id):
     try:
+        # TrimCommand 객체를 조회합니다.
         cmd = TrimCommand.objects.get(id=trim_command_id)
-        input_file = cmd.video.file.path
-        output_file = f"media/output/trim_{cmd.video.id}_{cmd.id}.mp4"
+        
+        # 원본 Video 객체를 조회합니다.
+        video = Video.objects.get(id=cmd.video_no)
+        
+        # 원본 비디오 파일 경로와 출력 파일 경로를 설정합니다.
+        input_file = video.file.path
+        output_file = f"output/trim_{cmd.id}.mp4"
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
+        
+        # ffmpeg를 사용하여 비디오를 트림합니다.
         (
             ffmpeg
             .input(input_file, ss=cmd.start_time / 1000, to=cmd.end_time / 1000)
             .output(output_file)
             .run()
         )
-        cmd.video.file.name = output_file
-        cmd.video.save()
+        
+        # 트림된 비디오를 새 Video 객체로 저장합니다.
+        with open(output_file, 'rb') as f:
+            new_video_file = File(f)
+            new_video = Video.objects.create(file=new_video_file)
+
+        # 필요 시 추가 정보를 설정합니다. 예: 제목, 설명 등
+        new_video.title = f"Trimmed Video {cmd.id}"
+        new_video.save()
+
+        print(f"Trimmed video saved as: {new_video.file.name}")
+
     except Exception as e:
         print(f"Error trimming video: {e}")
 

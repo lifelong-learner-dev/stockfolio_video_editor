@@ -156,13 +156,6 @@ REST_FRAMEWORK = {
     )
 }
 
-# SessionAuthentication을 사용하지 않을 경우, 아래와 같이 설정하여 CSRF 검증을 비활성화할 수 있습니다.
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
-}
-
 if 'test' in sys.argv:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'test_media')
 
