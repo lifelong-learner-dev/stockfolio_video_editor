@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.http import FileResponse
 from .models import Video, TrimCommand, ConcatCommand
-from .serializers import VideoSerializer, TrimCommandSerializer, ConcatDetailSerializer, VideoUploadSerializer
+from .serializers import VideoSerializer, TrimCommandSerializer, ConcatCommandSerializer, VideoUploadSerializer
 from .tasks import execute_trim_command, execute_concat_command
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -75,39 +75,34 @@ class VideoViewSet(viewsets.ViewSet):
     )
     @action(detail=False, methods=['post'], url_path='trim')
     def trim(self, request):
-        # 요청 데이터에서 비디오 번호, 시작 시간, 종료 시간을 추출합니다.
-        video_no = request.data.get('video_no')
-        start_time = request.data.get('start_time')
-        end_time = request.data.get('end_time')
+        try:
+            # 요청 데이터에서 비디오 번호, 시작 시간, 종료 시간을 추출합니다.
+            video_no_get = request.data.get('video_no')
+            start_time_get = request.data.get('start_time')
+            end_time_get = request.data.get('end_time')
 
-        # 시리얼라이저를 위한 데이터 딕셔너리를 준비합니다.
-        data = {
-            'video_no': video_no,
-            'start_time': start_time,
-            'end_time': end_time
-        }
+            print(video_no_get)
+            print(start_time_get)
+            print(end_time_get)
 
-        # 요청 데이터를 사용하여 시리얼라이저를 초기화합니다.
-        serializer = TrimCommandSerializer(data=data)
-
-        # 시리얼라이저 데이터 검증
-        if serializer.is_valid():
-            with transaction.atomic():
-                # TrimCommand 인스턴스를 저장합니다.
-                trim_command = serializer.save()
-
-                # 커밋 후에 태스크 실행을 예약합니다.
-                transaction.on_commit(lambda: execute_trim_command.delay(trim_command.id))
-
-            # 시리얼라이저 데이터를 응답으로 반환하고 상태 코드를 201로 설정합니다.
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        # 시리얼라이저 검증 실패 시 오류를 반환합니다.
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                with transaction.atomic():
+                    trimcmd = TrimCommand.objects.create(video_no = video_no_get, start_time = start_time_get,
+                end_time = end_time_get)  
+                    print(trimcmd)
+                    print(trimcmd.id)  
+                    transaction.on_commit(lambda: execute_trim_command.delay(trimcmd.id))
+                return Response({'id': trimcmd.id}, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                print(f"트림테이블 생성 에러 : {e}")
+            
+        except Exception as e:
+            print(f"에러 : {e}")
+                
 
     @swagger_auto_schema(
         method='post',
-        request_body=ConcatDetailSerializer,
+        request_body=ConcatCommandSerializer,
         responses={
             201: 'ID of the created concat command',
             400: 'Bad Request',
@@ -115,31 +110,30 @@ class VideoViewSet(viewsets.ViewSet):
     )
     @action(detail=False, methods=['post'], url_path='concat')
     def concat(self, request):
-        video_ids = request.data.get('video_nos', [])
-        order_ids = request.data.get('order_nos', [])
+        # 'videos' 파라미터를 통해 병렬화된 리스트로 변환
+        video_ids = request.data.get('videos', '').split(',')
+        video1 = Video.objects.filter(id=1).first()
+        video2 = Video.objects.filter(id=2).first()
 
+        print(video1.file.path)
+        print(video2.file.path)
         try:
+            # 비디오 ID에 해당하는 비디오 객체들을 조종
             videos = Video.objects.filter(id__in=video_ids)
             if videos.count() != len(video_ids):
                 return Response({'error': 'Some video IDs are invalid.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
+            # ConcatCommandSerializer에 비디오 객체 리스트를 전달하여 저장
             with transaction.atomic():
                 concat_command = ConcatCommand.objects.create()
                 concat_command.videos.set(videos)
                 transaction.on_commit(lambda: execute_concat_command.delay(concat_command.id))
-            
+
             return Response({'id': concat_command.id}, status=status.HTTP_201_CREATED)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(
-        method='get',
-        responses={
-            200: 'File download',
-            404: 'File not found',
-        }
-    )
     @action(detail=True, methods=['get'], url_path='download')
     def download(self, request, pk=None):
         video = get_object_or_404(Video, pk=pk)
