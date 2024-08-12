@@ -12,7 +12,7 @@ def execute_trim_command(trim_command_id):
         cmd = TrimCommand.objects.get(id=trim_command_id)
         video = Video.objects.get(id=cmd.video_no)
         input_file = video.file.path
-        output_file = f"output/trim_{cmd.id}.mp4"
+        output_file = f"media/output/trim_{cmd.id}.mp4"
 
         # 출력 파일의 디렉토리가 존재하지 않으면 생성합니다.
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
@@ -69,11 +69,11 @@ def execute_concat_command(concat_command_id):
     try:
         cmd = ConcatCommand.objects.get(id=concat_command_id)
         input_files = [video.file.path for video in cmd.videos.all()]
-        output_file = f"uploads/concat_{cmd.id}.mp4"
+        output_file = f"media/uploads/concat_{cmd.id}.mp4"
         os.makedirs(os.path.dirname(output_file), exist_ok=True)
 
         # 파일 목록 저장할 임시 파일 경로 생성
-        file_list_path = f"uploads/filelist_{cmd.id}.txt"
+        file_list_path = f"media/uploads/filelist_{cmd.id}.txt"
 
         # 파일 목록 생성
         with open(file_list_path, 'w') as filelist:

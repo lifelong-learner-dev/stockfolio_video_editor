@@ -36,16 +36,24 @@ class VideoAPITestCase(TestCase):
         self.assertEqual(len(response.data), len(self.video_files))
 
     def test_trim_command(self):
+        # 클라이언트 인증
         self.authenticate_client()
+
+        # 비디오 파일 업로드
         upload_response = self.client.post(reverse('video-list'), {'files': self.video_files}, format='multipart')
+        self.assertEqual(upload_response.status_code, status.HTTP_201_CREATED)
+        
         video_id = upload_response.data[0]['id']
 
         # 트림 명령 요청
-        trim_data = {'video': video_id, 'start_time': 1000, 'end_time': 5000}
-        response = self.client.post(reverse('video-detail', args=[video_id]), trim_data)
+        trim_data = {'video_no': video_id, 'start_time': 1000, 'end_time': 5000}
+        response = self.client.post(reverse('video-trim'), trim_data)  # 'video-trim'으로 URL 패턴 이름 수정
+        
         if response.status_code != status.HTTP_201_CREATED:
             print("Trim Command Error:", response.json())
+        
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn('id', response.data)
 
     def test_download_video(self):
         self.authenticate_client()
