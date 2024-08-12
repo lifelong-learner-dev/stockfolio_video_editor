@@ -198,21 +198,21 @@ json
 - 인증: 필수
 - 설명: ID로 특정 비디오 파일을 다운로드합니다.
 - 응답:
-- Content-Type: video/mp4
-- 응답에는 비디오 파일의 바이너리 콘텐츠가 포함됩니다.
+  - Content-Type: video/mp4
+  - 응답에는 비디오 파일의 바이너리 콘텐츠가 포함됩니다.
 - 오류 처리
-- API는 요청의 성공 또는 실패를 나타내기 위해 표준 HTTP 상태 코드를 사용합니다. 일반적인 상태 코드는 다음과 같습니다:
+  - API는 요청의 성공 또는 실패를 나타내기 위해 표준 HTTP 상태 코드를 사용합니다. 일반적인 상태 코드는 다음과 같습니다:
 
-- 200 OK - 요청이 성공적으로 처리되었습니다.
-- 201 Created - 리소스가 성공적으로 생성되었습니다.
-- 400 Bad Request - 요청이 잘못되었거나 유효하지 않습니다.
-- 401 Unauthorized - 인증 자격 증명이 없거나 유효하지 않습니다.
-- 404 Not Found - 요청한 리소스를 찾을 수 없습니다.
-- 500 Internal Server Error - 서버에서 오류가 발생했습니다.
+    - 200 OK - 요청이 성공적으로 처리되었습니다.
+    - 201 Created - 리소스가 성공적으로 생성되었습니다.
+    - 400 Bad Request - 요청이 잘못되었거나 유효하지 않습니다.
+    - 401 Unauthorized - 인증 자격 증명이 없거나 유효하지 않습니다.
+    - 404 Not Found - 요청한 리소스를 찾을 수 없습니다.
+    - 500 Internal Server Error - 서버에서 오류가 발생했습니다.
 
 - 참고
-- JSON 본문이 포함된 요청의 경우 Content-Type 헤더를 application/json으로 설정해야 합니다.
-- upload, trim, concat 엔드포인트는 비동기식으로 작동하며 비디오 작업을 처리하기 위한 백그라운드 작업을 트리거합니다.
+  - JSON 본문이 포함된 요청의 경우 Content-Type 헤더를 application/json으로 설정해야 합니다.
+  - upload, trim, concat 엔드포인트는 비동기식으로 작동하며 비디오 작업을 처리하기 위한 백그라운드 작업을 트리거합니다.
 
 ## Swagger 및 Redoc
 ### API 문서 및 인터랙티브 테스트는 Swagger와 Redoc을 통해 제공됩니다.
